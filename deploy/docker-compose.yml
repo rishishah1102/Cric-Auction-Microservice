@@ -1,0 +1,84 @@
+services:
+  mongo: 
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mongo:/data/db
+    networks: 
+      - auction-network
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${DB_USER}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${DB_PASSWORD}
+      ME_CONFIG_MONGODB_URL: mongodb://${DB_USER}:${DB_PASSWORD}@mongo:27017/
+    networks:
+      - auction-network
+
+  postgres:
+    image: postgres:16.9-alpine3.22
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks: 
+      - auction-network
+
+  redis:
+    image: redis:8.0.3-alpine3.21
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--requirepass", "${DB_PASSWORD}"]
+    networks: 
+      - auction-network
+
+  auth-service:
+    build:
+      context: ../ # This path is relative to docker-compose file so, need to ../ to go to root directory
+      dockerfile: ./services/auth/Dockerfile # as we have give context of our root directory
+    image: auth-service
+    container_name: auth-service
+    ports:
+      - "5001:8080"
+    environment:
+      MONGO_URI: mongodb://${DB_USER}:${DB_PASSWORD}@mongo:27017/
+      POSTGRES_URI: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432
+      REDIS_URI: redis:6379
+      REDIS_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 465
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_MAIL: ${SMTP_MAIL}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      TOKEN_KEY: ${TOKEN_KEY}
+    depends_on:
+      - mongo
+      - postgres
+      - redis
+    networks: 
+      - auction-network
+
+volumes:
+  mongo:
+    driver: local
+  postgres:
+    driver: local
+
+networks:
+  auction-network:
+    driver: bridge
