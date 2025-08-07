@@ -27,7 +27,7 @@ func (a *API) RegisterController(c *gin.Context) {
 
 	// Check if user exists
 	var existing models.User
-	err := a.db.Collection("users").FindOne(ctx, bson.M{"email": request.Email}).Decode(&existing)
+	err := a.DB.Collection("users").FindOne(ctx, bson.M{"email": request.Email}).Decode(&existing)
 	if err == nil {
 		a.logger.Warn("user already exists", zap.String("email", request.Email))
 		c.JSON(http.StatusConflict, gin.H{"error": "Account already exists"})
@@ -42,7 +42,7 @@ func (a *API) RegisterController(c *gin.Context) {
 
 	otp := utils.GenerateRandomNumber()
 
-	if err := a.redisClient.Set(ctx, "register_otp:"+request.Email, otp, 5*time.Minute).Err(); err != nil {
+	if err := a.RedisClient.Set(ctx, "register_otp:"+request.Email, otp, 5*time.Minute).Err(); err != nil {
 		a.logger.Error("failed to store OTP in redis", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "OTP generation failed"})
 		return

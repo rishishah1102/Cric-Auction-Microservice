@@ -28,7 +28,7 @@ func (a *API) RegisterOtpController(c *gin.Context) {
 		return
 	}
 
-	storedOtp, err := a.redisClient.Get(ctx, "register_otp:"+request.Email).Result()
+	storedOtp, err := a.RedisClient.Get(ctx, "register_otp:"+request.Email).Result()
 	if err == redis.Nil {
 		a.logger.Error("failed to fetch the OTP", zap.Error(err))
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "OTP expired or not found"})
@@ -46,13 +46,13 @@ func (a *API) RegisterOtpController(c *gin.Context) {
 	}
 
 	user := models.User{Email: request.Email, Mobile: request.Mobile, ImgUrl: request.ImgUrl}
-	if _, err := a.db.Collection("users").InsertOne(ctx, user); err != nil {
+	if _, err := a.DB.Collection("users").InsertOne(ctx, user); err != nil {
 		a.logger.Error("failed to insert user", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Registration failed"})
 		return
 	}
 
-	_ = a.redisClient.Del(ctx, "register_otp:"+request.Email)
+	_ = a.RedisClient.Del(ctx, "register_otp:"+request.Email)
 
 	token, err := middlewares.GenerateToken(request.Email)
 	if err != nil {

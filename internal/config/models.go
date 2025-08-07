@@ -2,24 +2,17 @@ package config
 
 import "time"
 
-// Config the struct for all the configuration of auction web
-type Config struct {
-	MongoDB  MongoDB
-	Postgres Postgres
-	Redis    Redis
-	Kafka    Kafka
-	DbName   string
-}
-
 // MongoDB is the struct for mongo configurations
 type MongoDB struct {
 	MongoURI string
+	DbName   string
 	Timeout  time.Duration
 }
 
 // Postgres is the struct for postgres configurations
 type Postgres struct {
 	PostgresURI string
+	DbName      string
 	Timeout     time.Duration
 }
 

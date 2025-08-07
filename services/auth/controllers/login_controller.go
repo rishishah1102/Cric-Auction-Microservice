@@ -26,7 +26,7 @@ func (a *API) LoginController(c *gin.Context) {
 	}
 
 	var user models.User
-	err := a.db.Collection("users").FindOne(ctx, bson.M{"email": request.Email}).Decode(&user)
+	err := a.DB.Collection("users").FindOne(ctx, bson.M{"email": request.Email}).Decode(&user)
 	if err == mongo.ErrNoDocuments {
 		a.logger.Error("failed to find user", zap.Error(err))
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -38,7 +38,7 @@ func (a *API) LoginController(c *gin.Context) {
 	}
 
 	otp := utils.GenerateRandomNumber()
-	if err := a.redisClient.Set(ctx, "login_otp:"+request.Email, otp, 5*time.Minute).Err(); err != nil {
+	if err := a.RedisClient.Set(ctx, "login_otp:"+request.Email, otp, 5*time.Minute).Err(); err != nil {
 		a.logger.Error("failed to store OTP in redis", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "OTP generation failed"})
 		return

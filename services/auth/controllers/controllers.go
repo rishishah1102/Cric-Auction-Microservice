@@ -1,6 +1,10 @@
 package controllers
 
 import (
+	"auction-web/internal/config"
+	"auction-web/internal/database"
+	"auction-web/internal/logger"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -10,17 +14,30 @@ import (
 // API is the struct for all the handlers
 type API struct {
 	logger      *zap.Logger
-	db          *mongo.Database
-	redisClient *redis.Client
+	DB          *mongo.Database
+	RedisClient *redis.Client
 }
 
 // NewAPI creates a new API instance
-func NewAPI(logger *zap.Logger, db *mongo.Database, redisClient *redis.Client) *API {
-	return &API{
-		logger:      logger,
-		db:          db,
-		redisClient: redisClient,
+func NewAPI() (*API, error) {
+	auctionLogger := logger.Get()
+	mongoCfg := config.LoadMongoConfig()
+	redisCfg := config.LoadRedisConfig()
+
+	mongoClient, err := database.NewMongoClient(mongoCfg.MongoURI, mongoCfg.Timeout)
+	if err != nil {
+		return nil, logger.WrapError(err, "failed to create mongo client")
 	}
+	db := mongoClient.Database(mongoCfg.DbName)
+	auctionLogger.Info("connected to mongo db")
+
+	redisClient := database.NewRedisClient(redisCfg.RedisURI, redisCfg.RedisPassword)
+
+	return &API{
+		logger:      auctionLogger,
+		DB:          db,
+		RedisClient: redisClient,
+	}, nil
 }
 
 // RegisterRoutes register all the handlers to gin router

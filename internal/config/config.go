@@ -7,28 +7,43 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// LoadConfig loads the environment variables into struct
-func LoadConfig() (cfg *Config) {
+// LoadMongoConfig loads the mongo variables into struct
+func LoadMongoConfig() (cfg *MongoDB) {
 	godotenv.Load()
-
-	cfg = &Config{
-		MongoDB: MongoDB{
-			MongoURI: os.Getenv("MONGO_URI"),
-			Timeout:  10 * time.Second,
-		},
-		Postgres: Postgres{
-			PostgresURI: os.Getenv("POSTGRES_URI"),
-			Timeout:     10 * time.Second,
-		},
-		Redis: Redis{
-			RedisURI:      os.Getenv("REDIS_URI"),
-			RedisPassword: os.Getenv("REDIS_PASSWORD"),
-		},
-		Kafka: Kafka{
-			KafkaBroker: os.Getenv("KAFKA_BROKER"),
-		},
-		DbName: os.Getenv("DB_NAME"),
+	cfg = &MongoDB{
+		MongoURI: os.Getenv("MONGO_URI"),
+		DbName:   os.Getenv("DB_NAME"),
+		Timeout:  10 * time.Second,
 	}
+	return cfg
+}
 
+// LoadPostgresConfig loads the postgres variables into struct
+func LoadPostgresConfig() (cfg *Postgres) {
+	godotenv.Load()
+	cfg = &Postgres{
+		PostgresURI: os.Getenv("POSTGRES_URI"),
+		DbName:      os.Getenv("DB_NAME"),
+		Timeout:     10 * time.Second,
+	}
+	return cfg
+}
+
+// LoadRedisConfig loads the redis variables into struct
+func LoadRedisConfig() (cfg *Redis) {
+	godotenv.Load()
+	cfg = &Redis{
+		RedisURI:      os.Getenv("REDIS_URI"),
+		RedisPassword: os.Getenv("REDIS_PASSWORD"),
+	}
+	return cfg
+}
+
+// LoadKafkaConfig loads the kafka variables into struct
+func LoadKafkaConfig() (cfg *Kafka) {
+	godotenv.Load()
+	cfg = &Kafka{
+		KafkaBroker: os.Getenv("KAFKA_BROKER"),
+	}
 	return cfg
 }

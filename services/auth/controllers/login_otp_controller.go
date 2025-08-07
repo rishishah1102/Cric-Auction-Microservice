@@ -28,7 +28,7 @@ func (a *API) LoginOtpController(c *gin.Context) {
 		return
 	}
 
-	storedOtp, err := a.redisClient.Get(ctx, "login_otp:"+request.Email).Result()
+	storedOtp, err := a.RedisClient.Get(ctx, "login_otp:"+request.Email).Result()
 	if err == redis.Nil {
 		a.logger.Error("failed to fetch the OTP", zap.Error(err))
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "OTP expired or not found"})
@@ -45,7 +45,7 @@ func (a *API) LoginOtpController(c *gin.Context) {
 		return
 	}
 
-	_ = a.redisClient.Del(ctx, "login_otp:"+request.Email)
+	_ = a.RedisClient.Del(ctx, "login_otp:"+request.Email)
 
 	token, err := middlewares.GenerateToken(request.Email)
 	if err != nil {

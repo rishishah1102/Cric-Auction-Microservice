@@ -16,6 +16,8 @@ func newLogger() {
 	config.ErrorOutputPaths = []string{"stderr"}
 	config.EncoderConfig.TimeKey = "timestamp"
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	config.EncoderConfig.CallerKey = "caller"
+	config.DisableStacktrace = true
 
 	// Will not give error as all the configs are defined as constants
 	logger, _ := config.Build()
