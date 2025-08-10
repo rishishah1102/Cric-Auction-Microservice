@@ -1,7 +1,7 @@
 package main
 
 import (
-	"auction-web/constants"
+	"auction-web/internal/constants"
 	"auction-web/internal/logger"
 	"auction-web/internal/router"
 	"auction-web/pkg/utils"
@@ -23,7 +23,7 @@ func main() {
 		auctionLogger.Error("failed to create API instance", zap.Error(err))
 		return
 	}
-	defer api.PostgresClient.Close(ctx)
+	defer api.PostgresClient.Close()
 	defer api.RedisClient.Close()
 	api.RegisterRoutes(router)
 

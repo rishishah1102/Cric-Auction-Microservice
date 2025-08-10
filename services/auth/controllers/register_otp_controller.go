@@ -1,12 +1,13 @@
 package controllers
 
 import (
+	"auction-web/internal/constants"
+	"auction-web/internal/database"
 	"auction-web/pkg/middlewares"
 	"auction-web/pkg/models"
 	"context"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -19,7 +20,7 @@ func (a *API) RegisterOtpController(c *gin.Context) {
 		OTP int `json:"otp"`
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.DBTimeout)
 	defer cancel()
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -45,8 +46,7 @@ func (a *API) RegisterOtpController(c *gin.Context) {
 		return
 	}
 
-	user := models.User{Email: request.Email, Mobile: request.Mobile, ImgUrl: request.ImgUrl}
-	if _, err := a.DB.Collection("users").InsertOne(ctx, user); err != nil {
+	if err = database.ExecuteQuery(ctx, a.PostgresClient, `INSERT INTO users (email, mobile, imgUrl) VALUES ($1, $2, $3)`, request.Email, request.Mobile, request.Image); err != nil {
 		a.logger.Error("failed to insert user", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Registration failed"})
 		return

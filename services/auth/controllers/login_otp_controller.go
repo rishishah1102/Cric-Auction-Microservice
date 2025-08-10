@@ -1,11 +1,11 @@
 package controllers
 
 import (
+	"auction-web/internal/constants"
 	"auction-web/pkg/middlewares"
 	"context"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -19,7 +19,7 @@ func (a *API) LoginOtpController(c *gin.Context) {
 		OTP   int    `json:"otp"`
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.DBTimeout)
 	defer cancel()
 
 	if err := c.ShouldBindJSON(&request); err != nil {

@@ -8,14 +8,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"go.uber.org/zap"
 )
 
 // API is the struct for all the handlers
 type API struct {
 	logger         *zap.Logger
-	PostgresClient *pgx.Conn
+	PostgresClient *pgxpool.Pool
 	RedisClient    *redis.Client
 }
 
@@ -23,10 +23,10 @@ type API struct {
 var initTable = `
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
-	id BIGSERIAL NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-	mobile TEXT UNIQUE NOT NULL,
-	imgUrl TEXT NOT NULL,
+	id BIGSERIAL NOT NULL PRIMARY KEY,
+    email TEXT NOT NULL,
+	mobile TEXT NOT NULL,
+	image TEXT,
 	created_at TIMESTAMPTZ DEFAULT now(),
 	updated_at TIMESTAMPTZ DEFAULT now()
 ) PARTITION BY RANGE (id);
@@ -49,7 +49,6 @@ func NewAPI(ctx context.Context) (*API, error) {
 		return nil, logger.WrapError(err, "failed to create postgres client")
 	}
 
-	// Create table
 	if err = database.ExecuteQuery(ctx, postgresClient, initTable); err != nil {
 		return nil, logger.WrapError(err, "failed to create table")
 	}

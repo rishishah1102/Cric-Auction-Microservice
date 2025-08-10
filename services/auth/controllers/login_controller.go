@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"auction-web/constants"
+	"auction-web/internal/constants"
 	"auction-web/internal/database"
 	"auction-web/pkg/models"
 	"auction-web/pkg/utils"
@@ -25,28 +25,17 @@ func (a *API) LoginController(c *gin.Context) {
 		return
 	}
 
-	var user models.User
-	rows, err := database.FetchRecords(ctx, a.PostgresClient, `SELECT * FROM users where email=$1`, request.Email)
+	users, err := database.FetchRecords[models.User](ctx, a.PostgresClient, `SELECT * FROM users where email=$1`, request.Email)
 	if err != nil {
 		a.logger.Error("failed to fetch user", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error from db"})
 		return
 	}
-	if err = rows.Scan(&user.Email, &user.ImgUrl, &user.ImgUrl); err != nil {
-		a.logger.Error("failed to scan user", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error from service"})
+	if len(users) == 0 {
+		a.logger.Error("failed to find user", zap.Error(err))
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
-	// err := a.DB.Collection("users").FindOne(ctx, bson.M{"email": request.Email}).Decode(&user)
-	// if err == mongo.ErrNoDocuments {
-	// 	a.logger.Error("failed to find user", zap.Error(err))
-	// 	c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-	// 	return
-	// } else if err != nil {
-	// 	a.logger.Error("failed to fetch user", zap.Error(err))
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error from db"})
-	// 	return
-	// }
 
 	otp := utils.GenerateRandomNumber()
 	if err := a.RedisClient.Set(ctx, "login_otp:"+request.Email, otp, 5*time.Minute).Err(); err != nil {

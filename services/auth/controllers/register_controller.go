@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"auction-web/internal/database"
 	"auction-web/pkg/models"
 	"auction-web/pkg/utils"
 	"context"
@@ -8,8 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -26,17 +25,15 @@ func (a *API) RegisterController(c *gin.Context) {
 	}
 
 	// Check if user exists
-	var existing models.User
-	err := a.DB.Collection("users").FindOne(ctx, bson.M{"email": request.Email}).Decode(&existing)
-	if err == nil {
-		a.logger.Warn("user already exists", zap.String("email", request.Email))
-		c.JSON(http.StatusConflict, gin.H{"error": "Account already exists"})
+	users, err := database.FetchRecords[models.User](ctx, a.PostgresClient, `SELECT * FROM users where email=$1`, request.Email)
+	if err != nil {
+		a.logger.Error("failed to fetch user", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error from db"})
 		return
 	}
-
-	if err != mongo.ErrNoDocuments {
-		a.logger.Error("failed to fetch user", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error from database"})
+	if len(users) != 0 {
+		a.logger.Warn("user already exists", zap.String("email", request.Email))
+		c.JSON(http.StatusConflict, gin.H{"error": "Account already exists"})
 		return
 	}
 

@@ -84,7 +84,6 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       TOKEN_KEY: ${TOKEN_KEY}
     depends_on:
-      - mongo
       - postgres
       - redis
     networks: 
