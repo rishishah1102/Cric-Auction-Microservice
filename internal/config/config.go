@@ -2,7 +2,6 @@ package config
 
 import (
 	"os"
-	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -13,7 +12,6 @@ func LoadMongoConfig() (cfg *MongoDB) {
 	cfg = &MongoDB{
 		MongoURI: os.Getenv("MONGO_URI"),
 		DbName:   os.Getenv("DB_NAME"),
-		Timeout:  10 * time.Second,
 	}
 	return cfg
 }
@@ -24,7 +22,6 @@ func LoadPostgresConfig() (cfg *Postgres) {
 	cfg = &Postgres{
 		PostgresURI: os.Getenv("POSTGRES_URI"),
 		DbName:      os.Getenv("DB_NAME"),
-		Timeout:     10 * time.Second,
 	}
 	return cfg
 }

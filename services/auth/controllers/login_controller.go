@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"auction-web/constants"
+	"auction-web/internal/database"
 	"auction-web/pkg/models"
 	"auction-web/pkg/utils"
 	"context"
@@ -8,15 +10,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
 // This route logs in the user. It takes the email from user and sends otp
 func (a *API) LoginController(c *gin.Context) {
 	var request models.User
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.DBTimeout)
 	defer cancel()
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -26,16 +26,27 @@ func (a *API) LoginController(c *gin.Context) {
 	}
 
 	var user models.User
-	err := a.DB.Collection("users").FindOne(ctx, bson.M{"email": request.Email}).Decode(&user)
-	if err == mongo.ErrNoDocuments {
-		a.logger.Error("failed to find user", zap.Error(err))
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	} else if err != nil {
+	rows, err := database.FetchRecords(ctx, a.PostgresClient, `SELECT * FROM users where email=$1`, request.Email)
+	if err != nil {
 		a.logger.Error("failed to fetch user", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error from db"})
 		return
 	}
+	if err = rows.Scan(&user.Email, &user.ImgUrl, &user.ImgUrl); err != nil {
+		a.logger.Error("failed to scan user", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error from service"})
+		return
+	}
+	// err := a.DB.Collection("users").FindOne(ctx, bson.M{"email": request.Email}).Decode(&user)
+	// if err == mongo.ErrNoDocuments {
+	// 	a.logger.Error("failed to find user", zap.Error(err))
+	// 	c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+	// 	return
+	// } else if err != nil {
+	// 	a.logger.Error("failed to fetch user", zap.Error(err))
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error from db"})
+	// 	return
+	// }
 
 	otp := utils.GenerateRandomNumber()
 	if err := a.RedisClient.Set(ctx, "login_otp:"+request.Email, otp, 5*time.Minute).Err(); err != nil {

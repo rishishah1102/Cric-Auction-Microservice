@@ -2,4 +2,4 @@
 **/.env
 **/tmp
 run.sh
-auth.txt
+*.txt

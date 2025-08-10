@@ -4,39 +4,62 @@ import (
 	"auction-web/internal/config"
 	"auction-web/internal/database"
 	"auction-web/internal/logger"
+	"context"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 )
 
 // API is the struct for all the handlers
 type API struct {
-	logger      *zap.Logger
-	DB          *mongo.Database
-	RedisClient *redis.Client
+	logger         *zap.Logger
+	PostgresClient *pgx.Conn
+	RedisClient    *redis.Client
 }
 
-// NewAPI creates a new API instance
-func NewAPI() (*API, error) {
-	auctionLogger := logger.Get()
-	mongoCfg := config.LoadMongoConfig()
-	redisCfg := config.LoadRedisConfig()
+// initTable is the initial query to create the table, partition and index
+var initTable = `
+-- Create users table
+CREATE TABLE IF NOT EXISTS users (
+	id BIGSERIAL NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+	mobile TEXT UNIQUE NOT NULL,
+	imgUrl TEXT NOT NULL,
+	created_at TIMESTAMPTZ DEFAULT now(),
+	updated_at TIMESTAMPTZ DEFAULT now()
+) PARTITION BY RANGE (id);
 
-	mongoClient, err := database.NewMongoClient(mongoCfg.MongoURI, mongoCfg.Timeout)
+-- Create partition for users table
+CREATE TABLE IF NOT EXISTS users_p1 PARTITION OF users FOR VALUES FROM (0) TO (20000);
+
+-- Create index on parent table as it will create indexes on its own for child table
+CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
+`
+
+// NewAPI creates a new API instance
+func NewAPI(ctx context.Context) (*API, error) {
+	auctionLogger := logger.Get()
+	redisCfg := config.LoadRedisConfig()
+	postgresCfg := config.LoadPostgresConfig()
+
+	postgresClient, err := database.NewPostgresClient(ctx, postgresCfg.PostgresURI)
 	if err != nil {
-		return nil, logger.WrapError(err, "failed to create mongo client")
+		return nil, logger.WrapError(err, "failed to create postgres client")
 	}
-	db := mongoClient.Database(mongoCfg.DbName)
-	auctionLogger.Info("connected to mongo db")
+
+	// Create table
+	if err = database.ExecuteQuery(ctx, postgresClient, initTable); err != nil {
+		return nil, logger.WrapError(err, "failed to create table")
+	}
 
 	redisClient := database.NewRedisClient(redisCfg.RedisURI, redisCfg.RedisPassword)
 
 	return &API{
-		logger:      auctionLogger,
-		DB:          db,
-		RedisClient: redisClient,
+		logger:         auctionLogger,
+		PostgresClient: postgresClient,
+		RedisClient:    redisClient,
 	}, nil
 }
 
