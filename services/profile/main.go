@@ -24,7 +24,6 @@ func main() {
 		return
 	}
 	defer api.PostgresClient.Close()
-	defer api.RedisClient.Close()
 	api.RegisterRoutes(router)
 
 	utils.StartServer(ctx, router, "service", "7002")

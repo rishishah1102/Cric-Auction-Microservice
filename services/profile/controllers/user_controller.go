@@ -1,27 +1,76 @@
 package controllers
 
 import (
+	"auction-web/internal/constants"
+	"auction-web/internal/database"
+	"context"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
+
+// userProfile struct is the combination of user and profile struct
+type userProfile struct {
+	Email        string `db:"email" json:"email"`
+	Mobile       string `db:"mobile" json:"mobile"`
+	FirstName    string `db:"first_name" json:"first_name"`
+	LastName     string `db:"last_name" json:"last_name"`
+	ImageURL     string `db:"image" json:"image"`
+	Role         string `db:"role" json:"role"`
+	BattingHand  string `db:"batting_hand" json:"batting_hand"`
+	BattingOrder string `db:"batting_order" json:"batting_order"`
+	BattingStyle string `db:"batting_style" json:"batting_style"`
+	BowlingArm   string `db:"bowling_arm" json:"bowling_arm"`
+	BowlingType  string `db:"bowling_type" json:"bowling_type"`
+}
+
+var query = `
+SELECT 
+	u.email,
+	u.mobile,
+	p.first_name,
+	p.last_name,
+	p.image,
+	p.role,
+	p.batting_hand,
+	p.batting_order,
+	p.batting_style,
+	p.bowling_arm,
+	p.bowling_type
+FROM users u
+INNER JOIN profiles p ON u.uuid = p.uuid
+WHERE u.email = $1
+`
 
 // UserController fetches the profile and user
 func (a *API) UserController(c *gin.Context) {
-	// ctx, cancel := context.WithTimeout(c.Request.Context(), constants.DBTimeout)
-	// defer cancel()
+	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.DBTimeout)
+	defer cancel()
 
-	// // Fetch uuid from token
-	// tokenUUID := c.GetString("uuid")
-	// if tokenUUID == "" {
-	// 	a.logger.Error("failed to fetch uuid from token")
-	// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "UUID not found in token"})
-	// 	return
-	// }
+	// Fetch uuid from token
+	email := c.GetString("email")
+	if email == "" {
+		a.logger.Error("failed to fetch email from token")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Email not found in token"})
+		return
+	}
 
-	// uid, err := uuid.Parse(tokenUUID)
-	// if err != nil {
-	// 	a.logger.Error("failed to parse the uuid")
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid uuid"})
-	// 	return
-	// }
+	userProfiles, err := database.FetchRecords[userProfile](ctx, a.PostgresClient, query, email)
+	if err != nil {
+		a.logger.Error("failed to fetch user profile", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error from db"})
+		return
+	}
 
+	if len(userProfiles) == 0 {
+		a.logger.Error("failed to find user profile with requested email")
+		c.JSON(http.StatusNotFound, gin.H{"error": "User profile not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "User profile fetched successfully",
+		"userProfile": userProfiles[0],
+	})
 }
