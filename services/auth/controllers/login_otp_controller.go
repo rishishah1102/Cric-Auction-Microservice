@@ -28,7 +28,7 @@ func (a *API) LoginOtpController(c *gin.Context) {
 		return
 	}
 
-	storedOtp, err := a.RedisClient.Get(ctx, "login_otp:"+request.Email).Result()
+	val, err := a.RedisClient.HGetAll(ctx, "login_otp:"+request.Email).Result()
 	if err == redis.Nil {
 		a.logger.Error("failed to fetch the OTP", zap.Error(err))
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "OTP expired or not found"})
@@ -39,7 +39,7 @@ func (a *API) LoginOtpController(c *gin.Context) {
 		return
 	}
 
-	if strconv.Itoa(request.OTP) != storedOtp {
+	if strconv.Itoa(request.OTP) != val["otp"] {
 		a.logger.Error("failed to validate OTP")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid OTP"})
 		return
@@ -47,7 +47,7 @@ func (a *API) LoginOtpController(c *gin.Context) {
 
 	_ = a.RedisClient.Del(ctx, "login_otp:"+request.Email)
 
-	token, err := middlewares.GenerateToken(request.Email)
+	token, err := middlewares.GenerateToken(val["uuid"], request.Email)
 	if err != nil {
 		a.logger.Error("failed to generate jwt token", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error from token"})

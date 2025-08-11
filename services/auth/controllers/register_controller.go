@@ -39,7 +39,7 @@ func (a *API) RegisterController(c *gin.Context) {
 
 	otp := utils.GenerateRandomNumber()
 
-	if err := a.RedisClient.Set(ctx, "register_otp:"+request.Email, otp, 5*time.Minute).Err(); err != nil {
+	if err := a.RedisClient.Set(ctx, "register_otp:"+request.Email, otp, TTLTime).Err(); err != nil {
 		a.logger.Error("failed to store OTP in redis", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "OTP generation failed"})
 		return

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -46,7 +47,8 @@ func (a *API) RegisterOtpController(c *gin.Context) {
 		return
 	}
 
-	if err = database.ExecuteQuery(ctx, a.PostgresClient, `INSERT INTO users (email, mobile, image) VALUES ($1, $2, $3)`, request.Email, request.Mobile, request.Image); err != nil {
+	var uuid uuid.UUID
+	if err = database.ExecuteQueryReturning(ctx, a.PostgresClient, &uuid, `INSERT INTO users (email, mobile) VALUES ($1, $2, $3) RETURNING uuid`, request.Email, request.Mobile); err != nil {
 		a.logger.Error("failed to insert user", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Registration failed"})
 		return
@@ -54,7 +56,7 @@ func (a *API) RegisterOtpController(c *gin.Context) {
 
 	_ = a.RedisClient.Del(ctx, "register_otp:"+request.Email)
 
-	token, err := middlewares.GenerateToken(request.Email)
+	token, err := middlewares.GenerateToken(uuid.String(), request.Email)
 	if err != nil {
 		a.logger.Error("failed to generate jwt token", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server error from token"})

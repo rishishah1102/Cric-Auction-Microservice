@@ -7,7 +7,7 @@ import (
 	"auction-web/pkg/utils"
 	"context"
 	"net/http"
-	"time"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -15,7 +15,9 @@ import (
 
 // This route logs in the user. It takes the email from user and sends otp
 func (a *API) LoginController(c *gin.Context) {
-	var request models.User
+	var request struct {
+		Email string `json:"email"`
+	}
 	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.DBTimeout)
 	defer cancel()
 
@@ -38,7 +40,11 @@ func (a *API) LoginController(c *gin.Context) {
 	}
 
 	otp := utils.GenerateRandomNumber()
-	if err := a.RedisClient.Set(ctx, "login_otp:"+request.Email, otp, 5*time.Minute).Err(); err != nil {
+	val := map[string]string{
+		"otp":  strconv.Itoa(otp),
+		"uuid": users[0].UUID.String(),
+	}
+	if err := a.RedisClient.HSet(ctx, "login_otp:"+request.Email, val, TTLTime).Err(); err != nil {
 		a.logger.Error("failed to store OTP in redis", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "OTP generation failed"})
 		return
