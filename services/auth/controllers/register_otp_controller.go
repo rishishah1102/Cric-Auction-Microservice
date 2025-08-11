@@ -46,7 +46,7 @@ func (a *API) RegisterOtpController(c *gin.Context) {
 		return
 	}
 
-	if err = database.ExecuteQuery(ctx, a.PostgresClient, `INSERT INTO users (email, mobile, imgUrl) VALUES ($1, $2, $3)`, request.Email, request.Mobile, request.Image); err != nil {
+	if err = database.ExecuteQuery(ctx, a.PostgresClient, `INSERT INTO users (email, mobile, image) VALUES ($1, $2, $3)`, request.Email, request.Mobile, request.Image); err != nil {
 		a.logger.Error("failed to insert user", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Registration failed"})
 		return
