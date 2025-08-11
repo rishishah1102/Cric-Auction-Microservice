@@ -92,10 +92,10 @@ services:
     build:
       context: ../ # This path is relative to docker-compose file so, need to ../ to go to root directory
       dockerfile: ./services/profile/Dockerfile # as we have give context of our root directory
-    image: auth-service
-    container_name: auth-service
+    image: profile-service
+    container_name: profile-service
     ports:
-      - "7001:7001"
+      - "7002:7002"
     environment:
       POSTGRES_URI: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?sslmode=disable
       TOKEN_KEY: ${TOKEN_KEY}
