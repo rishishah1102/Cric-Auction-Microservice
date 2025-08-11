@@ -11,5 +11,5 @@ RUN go build -o auth-service services/auth/main.go
 FROM alpine:3.22
 WORKDIR /app
 COPY --from=builder /app/auth-service .
-EXPOSE 5001
+EXPOSE 7001
 CMD ["./auth-service"]

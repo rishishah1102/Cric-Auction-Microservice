@@ -11,5 +11,5 @@ RUN go build -o profile-service services/profile/main.go
 FROM alpine:3.22
 WORKDIR /app
 COPY --from=builder /app/profile-service .
-EXPOSE 5001
+EXPOSE 7002
 CMD ["./profile-service"]

@@ -9,7 +9,6 @@ type MongoDB struct {
 // Postgres is the struct for postgres configurations
 type Postgres struct {
 	PostgresURI string
-	DbName      string
 }
 
 // Redis is the struct for redis configurations

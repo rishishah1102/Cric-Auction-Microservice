@@ -21,7 +21,6 @@ func LoadPostgresConfig() (cfg *Postgres) {
 	godotenv.Load()
 	cfg = &Postgres{
 		PostgresURI: os.Getenv("POSTGRES_URI"),
-		DbName:      os.Getenv("DB_NAME"),
 	}
 	return cfg
 }
