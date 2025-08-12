@@ -7,7 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func GenerateToken(uuid, email string) (string, error) {
+func GenerateToken(id, email string) (string, error) {
 	// Jwt Secret
 	jwtKey := []byte(os.Getenv("TOKEN_SECRET"))
 
@@ -16,9 +16,9 @@ func GenerateToken(uuid, email string) (string, error) {
 
 	claims := &Claims{
 		Email: email,
-		UUID:  uuid,
+		ID:    id,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   uuid, // Standard `sub` claim
+			Subject:   id, // Standard `sub` claim
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(expTime),

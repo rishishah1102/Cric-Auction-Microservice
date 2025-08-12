@@ -53,7 +53,7 @@ func VerifyToken(c *gin.Context) {
 	}
 
 	// Store UUID and email in context
-	c.Set("uuid", claims.UUID)
+	c.Set("id", claims.ID)
 	c.Set("email", claims.Email)
 
 	// Token is valid forwarding request

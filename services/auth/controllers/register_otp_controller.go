@@ -11,15 +11,21 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
+// registerOTPRequest is the struct for register otp controller request body
+type registerOTPRequest struct {
+	models.User
+	OTP int `json:"otp"`
+}
+
 func (a *API) RegisterOtpController(c *gin.Context) {
-	var request struct {
-		models.User
-		OTP int `json:"otp"`
-	}
+	var (
+		query   = `INSERT INTO users (email, mobile) VALUES ($1, $2) RETURNING id`
+		args    []any
+		request registerOTPRequest
+	)
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.DBTimeout)
 	defer cancel()
@@ -29,6 +35,8 @@ func (a *API) RegisterOtpController(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
+
+	args = []any{request.Email, request.Mobile}
 
 	storedOtp, err := a.RedisClient.Get(ctx, "register_otp:"+request.Email).Result()
 	if err == redis.Nil {
@@ -47,8 +55,8 @@ func (a *API) RegisterOtpController(c *gin.Context) {
 		return
 	}
 
-	var uuid uuid.UUID
-	if err = database.ExecuteQueryReturning(ctx, a.PostgresClient, &uuid, `INSERT INTO users (email, mobile) VALUES ($1, $2, $3) RETURNING uuid`, request.Email, request.Mobile); err != nil {
+	var ID int64
+	if err = database.ExecuteQueryReturning(ctx, a.PostgresClient, &ID, query, args...); err != nil {
 		a.logger.Error("failed to insert user", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Registration failed"})
 		return
@@ -56,7 +64,7 @@ func (a *API) RegisterOtpController(c *gin.Context) {
 
 	_ = a.RedisClient.Del(ctx, "register_otp:"+request.Email)
 
-	token, err := middlewares.GenerateToken(uuid.String(), request.Email)
+	token, err := middlewares.GenerateToken(strconv.FormatInt(ID, 10), request.Email)
 	if err != nil {
 		a.logger.Error("failed to generate jwt token", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server error from token"})

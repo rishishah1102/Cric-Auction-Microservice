@@ -16,7 +16,7 @@ type userProfile struct {
 	Mobile       string `db:"mobile" json:"mobile"`
 	FirstName    string `db:"first_name" json:"first_name"`
 	LastName     string `db:"last_name" json:"last_name"`
-	ImageURL     string `db:"image" json:"image"`
+	ImageURL     string `db:"image_url" json:"image_url"`
 	Role         string `db:"role" json:"role"`
 	BattingHand  string `db:"batting_hand" json:"batting_hand"`
 	BattingOrder string `db:"batting_order" json:"batting_order"`
@@ -25,26 +25,26 @@ type userProfile struct {
 	BowlingType  string `db:"bowling_type" json:"bowling_type"`
 }
 
-var query = `
-SELECT 
-	u.email,
-	u.mobile,
-	p.first_name,
-	p.last_name,
-	p.image,
-	p.role,
-	p.batting_hand,
-	p.batting_order,
-	p.batting_style,
-	p.bowling_arm,
-	p.bowling_type
-FROM users u
-INNER JOIN profiles p ON u.uuid = p.uuid
-WHERE u.email = $1
-`
-
 // UserController fetches the profile and user
 func (a *API) UserController(c *gin.Context) {
+	var query = `
+		SELECT 
+			u.email,
+			u.mobile,
+			p.first_name,
+			p.last_name,
+			p.image_url,
+			p.role,
+			p.batting_hand,
+			p.batting_order,
+			p.batting_style,
+			p.bowling_arm,
+			p.bowling_type
+		FROM users u
+		INNER JOIN profiles p ON u.id = p.user_id
+		WHERE u.email = $1
+	`
+
 	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.DBTimeout)
 	defer cancel()
 

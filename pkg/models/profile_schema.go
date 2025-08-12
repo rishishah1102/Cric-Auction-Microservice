@@ -2,14 +2,12 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // Profile is the struct for profile of auction users
 type Profile struct {
-	UUID         uuid.UUID `db:"uuid" json:"uuid"`
-	Id           int64     `db:"id" json:"id"`
+	ID           int64     `db:"id" json:"id"`
+	UserID       int64     `db:"user_id" json:"user_id"`
 	FirstName    string    `db:"first_name" json:"first_name"`
 	LastName     string    `db:"last_name" json:"last_name"`
 	ImageURL     string    `db:"image_url" json:"image_url"`

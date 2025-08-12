@@ -6,14 +6,23 @@ import (
 	"auction-web/pkg/models"
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
 // ProfileController saves the profile into db
 func (a *API) ProfileController(c *gin.Context) {
+	var (
+		query = `INSERT INTO profiles (
+    			user_id, first_name, last_name, role, image_url, batting_hand,
+    			batting_order, batting_style, bowling_arm, bowling_type
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		`
+		args []any
+	)
+
 	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.DBTimeout)
 	defer cancel()
 
@@ -25,23 +34,35 @@ func (a *API) ProfileController(c *gin.Context) {
 	}
 
 	// Fetch uuid from token
-	tokenUUID := c.GetString("uuid")
-	if tokenUUID == "" {
-		a.logger.Error("failed to fetch uuid from token")
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "UUID not found in token"})
+	tokenID := c.GetString("id")
+	if tokenID == "" {
+		a.logger.Error("failed to fetch ID from token")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "ID not found in token"})
 		return
 	}
 
-	uid, err := uuid.Parse(tokenUUID)
+	ID, err := strconv.ParseInt(tokenID, 10, 64)
 	if err != nil {
-		a.logger.Error("failed to parse the uuid")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid uuid"})
+		a.logger.Error("failed to parse the ID")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid ID"})
 		return
 	}
-	request.UUID = uid
 
-	err = database.ExecuteQuery(ctx, a.PostgresClient, `INSERT INTO profiles (uuid, first_name, last_name, role, image_url, batting_hand, batting_order, batting_style, bowling_arm, bowling_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`, request.UUID, request.FirstName, request.LastName, request.Role, request.BattingHand, request.BattingOrder, request.BattingStyle, request.BowlingArm, request.BowlingType)
-	if err != nil {
+	request.UserID = ID
+	args = []any{
+		request.UserID,
+		request.FirstName,
+		request.LastName,
+		request.Role,
+		request.ImageURL,
+		request.BattingHand,
+		request.BattingOrder,
+		request.BattingStyle,
+		request.BowlingArm,
+		request.BowlingType,
+	}
+
+	if err = database.ExecuteQuery(ctx, a.PostgresClient, query, args...); err != nil {
 		a.logger.Error("failed to update profile", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Profile updation failed"})
 		return
