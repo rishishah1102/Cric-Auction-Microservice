@@ -14,7 +14,11 @@ import (
 
 // This route is for getting username and email from frontend and sending otp via email
 func (a *API) RegisterController(c *gin.Context) {
-	var request models.User
+	var (
+		query   = `SELECT id FROM users where email=$1`
+		request models.User
+	)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -25,7 +29,7 @@ func (a *API) RegisterController(c *gin.Context) {
 	}
 
 	// Check if user exists
-	users, err := database.FetchRecords[models.User](ctx, a.PostgresClient, `SELECT * FROM users where email=$1`, request.Email)
+	users, err := database.FetchRecords[models.User](ctx, a.PostgresClient, query, request.Email)
 	if err != nil {
 		a.logger.Error("failed to fetch user", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error from db"})
@@ -39,7 +43,7 @@ func (a *API) RegisterController(c *gin.Context) {
 
 	otp := utils.GenerateRandomNumber()
 
-	if err := a.RedisClient.Set(ctx, "register_otp:"+request.Email, otp, 5*time.Minute).Err(); err != nil {
+	if err := a.RedisClient.Set(ctx, "register_otp:"+request.Email, otp, TTLTime).Err(); err != nil {
 		a.logger.Error("failed to store OTP in redis", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "OTP generation failed"})
 		return

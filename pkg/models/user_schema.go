@@ -1,20 +1,14 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
+// User is the struct for auction users
 type User struct {
-	Id        int64     `json:"id"`
-	Email     string    `json:"email"`
-	Mobile    string    `json:"mobile"`
-	Image     string    `json:"image"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	// FirstName    string             `bson:"firstName" json:"firstName"`
-	// LastName     string             `bson:"lastName" json:"lastName"`
-	// Role         string             `bson:"role" json:"role"`
-	// BowlingArm   string             `bson:"bowlingArm" json:"bowlingArm"`
-	// BowlingType  string             `bson:"bowlingType" json:"bowlingType"`
-	// BattingHand  string             `bson:"battingHand" json:"battingHand"`
-	// BattingOrder string             `bson:"battingOrder" json:"battingOrder"`
-	// BattingStyle string             `bson:"battingStyle" json:"battingStyle"`
+	ID        int64     `db:"id" json:"id"`
+	Email     string    `db:"email" json:"email"`
+	Mobile    string    `db:"mobile" json:"mobile"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }

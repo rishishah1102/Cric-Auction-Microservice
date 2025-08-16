@@ -7,21 +7,25 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func GenerateToken(email string) (string, error) {
+func GenerateToken(id, email string) (string, error) {
 	// Jwt Secret
 	jwtKey := []byte(os.Getenv("TOKEN_SECRET"))
 
-	// Create a new token object
-	token := jwt.New(jwt.SigningMethodHS256)
+	now := time.Now()
+	expTime := now.Add(24 * time.Hour)
 
-	// Set claims
-	claims := token.Claims.(jwt.MapClaims)
+	claims := &Claims{
+		Email: email,
+		ID:    id,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   id, // Standard `sub` claim
+			IssuedAt:  jwt.NewNumericDate(now),
+			NotBefore: jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(expTime),
+		},
+	}
 
-	// Setting data to token
-	claims["email"] = email
-
-	// Token expiration time
-	claims["exp"] = time.Now().Add(time.Hour * 24 * 365).Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Signing the token with the secret key and fetching the token
 	tokenString, err := token.SignedString(jwtKey)

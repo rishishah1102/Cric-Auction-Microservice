@@ -4,12 +4,12 @@ WORKDIR /app
 COPY ./go.mod go.sum ./
 COPY ./internal/ internal/
 COPY ./pkg/ pkg/
-COPY ./services/auth/ services/auth/
-RUN go build -o auth-service services/auth/main.go
+COPY ./services/profile/ services/profile/
+RUN go build -o profile-service services/profile/main.go
 
 # Stage 2: Run
 FROM alpine:3.22
 WORKDIR /app
-COPY --from=builder /app/auth-service .
-EXPOSE 7001
-CMD ["./auth-service"]
+COPY --from=builder /app/profile-service .
+EXPOSE 7002
+CMD ["./profile-service"]

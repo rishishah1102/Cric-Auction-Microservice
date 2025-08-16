@@ -12,7 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// API is the struct for all the handlers
 type API struct {
 	logger         *zap.Logger
 	PostgresClient *pgxpool.Pool
@@ -22,8 +21,8 @@ type API struct {
 // NewAPI creates a new API instance
 func NewAPI(ctx context.Context) (*API, error) {
 	auctionLogger := logger.Get()
-	redisCfg := config.LoadRedisConfig()
 	postgresCfg := config.LoadPostgresConfig()
+	redisCfg := config.LoadRedisConfig()
 
 	postgresClient, err := database.NewPostgresClient(ctx, postgresCfg.PostgresURI)
 	if err != nil {
@@ -44,17 +43,13 @@ func (a *API) RegisterRoutes(router *gin.Engine) {
 	// Server Check
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{
-			"message": "Welcome to the auth micro service",
+			"message": "Welcome to the home micro service",
 		})
 	})
 
-	authGroup := router.Group("/api/v1/auth")
+	profileGroup := router.Group("/api/v1")
 
-	authGroup.POST("/register", a.RegisterController)
+	profileGroup.POST("/profile", a.ProfileController)
 
-	authGroup.POST("/login", a.LoginController)
-
-	authGroup.POST("/rotp", a.RegisterOtpController)
-
-	authGroup.POST("/lotp", a.LoginOtpController)
+	profileGroup.GET("/profile", a.UserController)
 }

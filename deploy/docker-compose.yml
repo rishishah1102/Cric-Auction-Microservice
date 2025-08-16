@@ -76,7 +76,6 @@ services:
       POSTGRES_URI: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?sslmode=disable
       REDIS_URI: redis:6379
       REDIS_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 465
       SMTP_USERNAME: ${SMTP_USERNAME}
@@ -88,6 +87,25 @@ services:
       - redis
     networks: 
       - auction-network
+  
+  profile-service:
+    build:
+      context: ../ # This path is relative to docker-compose file so, need to ../ to go to root directory
+      dockerfile: ./services/profile/Dockerfile # as we have give context of our root directory
+    image: profile-service
+    container_name: profile-service
+    ports:
+      - "7002:7002"
+    environment:
+      POSTGRES_URI: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?sslmode=disable
+      REDIS_URI: redis:6379
+      REDIS_PASSWORD: ${DB_PASSWORD}
+      TOKEN_KEY: ${TOKEN_KEY}
+    depends_on:
+      - postgres
+    networks: 
+      - auction-network
+
 
 volumes:
   mongo:
