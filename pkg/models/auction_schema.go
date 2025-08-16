@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -13,6 +15,7 @@ type Auction struct {
 		Email string `bson:"email" json:"email"`
 		Name  string `bson:"name" json:"name"`
 	} `bson:"joinedBy" json:"joinedBy"`
-	CreatedAt          int64 `bson:"createdAt" json:"createdAt"`
-	PointsTableChecked bool  `bson:"pointsTableChecked" json:"pointsTableChecked"`
+	PointsTableChecked bool      `bson:"pointsTableChecked" json:"pointsTableChecked"`
+	CreatedAt          time.Time `bson:"createdAt" json:"createdAt"`
+	UpdatedAt          time.Time `bson:"updatedAt" json:"updatedAt"`
 }

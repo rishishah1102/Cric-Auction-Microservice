@@ -107,6 +107,26 @@ services:
     networks: 
       - auction-network
 
+auction-service:
+    build:
+      context: ../ # This path is relative to docker-compose file so, need to ../ to go to root directory
+      dockerfile: ./services/auction/Dockerfile # as we have give context of our root directory
+    image: auction-service
+    container_name: auction-service
+    ports:
+      - "7003:7003"
+    environment:
+      MONGO_URI: mongodb://${DB_USER}:${DB_PASSWORD}@mongo:27017/${DB_NAME}
+      DB_NAME: ${DB_NAME}
+      POSTGRES_URI: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?sslmode=disable
+      REDIS_URI: redis:6379
+      REDIS_PASSWORD: ${DB_PASSWORD}
+      TOKEN_KEY: ${TOKEN_KEY}
+    depends_on:
+      - postgres
+      - redis
+    networks: 
+      - auction-network
 
 volumes:
   mongo:
