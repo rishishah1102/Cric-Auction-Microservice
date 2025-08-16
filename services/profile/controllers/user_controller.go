@@ -68,6 +68,7 @@ func (a *API) UserController(c *gin.Context) {
 				"message":     "User profile fetched successfully from cache",
 				"userProfile": userProfile,
 			})
+			return
 		} else {
 			a.logger.Warn("failed to unmarshal user profile", zap.Error(err))
 			_ = a.RedisClient.Del(ctx, userProfileKey)
