@@ -71,7 +71,9 @@ func (a *API) UserController(c *gin.Context) {
 			return
 		} else {
 			a.logger.Warn("failed to unmarshal user profile", zap.Error(err))
-			_ = a.RedisClient.Del(ctx, userProfileKey)
+			if _, err = a.RedisClient.Del(ctx, userProfileKey).Result(); err != nil {
+				a.logger.Warn("failed to delete the key from redis", zap.Error(err))
+			}
 		}
 	}
 
