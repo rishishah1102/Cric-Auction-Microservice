@@ -4,6 +4,8 @@ import (
 	"auction-web/internal/constants"
 	"auction-web/internal/database"
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -56,6 +58,22 @@ func (a *API) UserController(c *gin.Context) {
 		return
 	}
 
+	userProfileKey := fmt.Sprintf("auction_profile_%s", email)
+
+	val, err := a.RedisClient.Get(ctx, userProfileKey).Result()
+	if err == nil {
+		var userProfile userProfile
+		if err = json.Unmarshal([]byte(val), &userProfile); err == nil {
+			c.JSON(http.StatusOK, gin.H{
+				"message":     "User profile fetched successfully from cache",
+				"userProfile": userProfile,
+			})
+		} else {
+			a.logger.Warn("failed to unmarshal user profile", zap.Error(err))
+			_ = a.RedisClient.Del(ctx, userProfileKey)
+		}
+	}
+
 	userProfiles, err := database.FetchRecords[userProfile](ctx, a.PostgresClient, query, email)
 	if err != nil {
 		a.logger.Error("failed to fetch user profile", zap.Error(err))
@@ -67,6 +85,15 @@ func (a *API) UserController(c *gin.Context) {
 		a.logger.Error("failed to find user profile with requested email")
 		c.JSON(http.StatusNotFound, gin.H{"error": "User profile not found"})
 		return
+	}
+
+	userProfileJSON, err := json.Marshal(userProfiles[0])
+	if err == nil {
+		if err = a.RedisClient.Set(ctx, userProfileKey, userProfileJSON, TTLTime).Err(); err != nil {
+			a.logger.Warn("failed to store user profile in redis", zap.Error(err))
+		}
+	} else {
+		a.logger.Warn("failed to marshal user profile", zap.Error(err))
 	}
 
 	c.JSON(http.StatusOK, gin.H{

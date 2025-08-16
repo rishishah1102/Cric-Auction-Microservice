@@ -62,7 +62,9 @@ func (a *API) RegisterOtpController(c *gin.Context) {
 		return
 	}
 
-	_ = a.RedisClient.Del(ctx, "register_otp:"+request.Email)
+	if _, err = a.RedisClient.Del(ctx, "register_otp:"+request.Email).Result(); err != nil {
+		a.logger.Warn("failed to delete the key from redis", zap.Error(err))
+	}
 
 	token, err := middlewares.GenerateToken(strconv.FormatInt(ID, 10), request.Email)
 	if err != nil {

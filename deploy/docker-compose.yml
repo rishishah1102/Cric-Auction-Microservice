@@ -98,6 +98,8 @@ services:
       - "7002:7002"
     environment:
       POSTGRES_URI: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?sslmode=disable
+      REDIS_URI: redis:6379
+      REDIS_PASSWORD: ${DB_PASSWORD}
       TOKEN_KEY: ${TOKEN_KEY}
     depends_on:
       - postgres

@@ -68,6 +68,13 @@ func (a *API) ProfileController(c *gin.Context) {
 		return
 	}
 
+	// If profile is updated, we need to delete old data from cache
+	if _, err = a.RedisClient.Del(ctx, "auction_profile_"+c.GetString("email")).Result(); err != nil {
+		a.logger.Error("failed to delete old data from cache", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error from redis"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Profile updated successfully",
 		"profile": request,
