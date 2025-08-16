@@ -103,6 +103,7 @@ services:
       TOKEN_KEY: ${TOKEN_KEY}
     depends_on:
       - postgres
+      - redis
     networks: 
       - auction-network
 
