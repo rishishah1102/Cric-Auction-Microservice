@@ -15,10 +15,27 @@ import (
 // ProfileController saves the profile into db
 func (a *API) ProfileController(c *gin.Context) {
 	var (
-		query = `INSERT INTO profiles (
-    			user_id, first_name, last_name, role, image_url, batting_hand,
-    			batting_order, batting_style, bowling_arm, bowling_type
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		query = `WITH upd AS (
+			UPDATE profiles
+			SET first_name    = $2,
+				last_name     = $3,
+				role          = $4,
+				image_url     = $5,
+				batting_hand  = $6,
+				batting_order = $7,
+				batting_style = $8,
+				bowling_arm   = $9,
+				bowling_type  = $10,
+				updated_at    = now()
+			WHERE user_id = $1
+			RETURNING *
+		)
+		INSERT INTO profiles (
+			user_id, first_name, last_name, role, image_url, batting_hand, 
+			batting_order, batting_style, bowling_arm, bowling_type
+		)
+		SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+		WHERE NOT EXISTS (SELECT 1 FROM upd);
 		`
 		args []any
 	)

@@ -107,7 +107,7 @@ services:
     networks: 
       - auction-network
 
-auction-service:
+  auction-service:
     build:
       context: ../ # This path is relative to docker-compose file so, need to ../ to go to root directory
       dockerfile: ./services/auction/Dockerfile # as we have give context of our root directory
@@ -123,6 +123,7 @@ auction-service:
       REDIS_PASSWORD: ${DB_PASSWORD}
       TOKEN_KEY: ${TOKEN_KEY}
     depends_on:
+      - mongo
       - postgres
       - redis
     networks: 
