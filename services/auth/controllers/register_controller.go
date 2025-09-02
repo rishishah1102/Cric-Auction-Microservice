@@ -1,12 +1,12 @@
 package controllers
 
 import (
+	"auction-web/internal/constants"
 	"auction-web/internal/database"
 	"auction-web/pkg/models"
 	"auction-web/pkg/utils"
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -19,7 +19,7 @@ func (a *API) RegisterController(c *gin.Context) {
 		request models.User
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.DBTimeout)
 	defer cancel()
 
 	if err := c.ShouldBindJSON(&request); err != nil {

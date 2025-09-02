@@ -3,17 +3,13 @@ package database
 import (
 	"auction-web/internal/logger"
 	"context"
-	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // NewMongoClient connects the application with mongo database and creates new mongo client
-func NewMongoClient(uri string, timeout time.Duration) (client *mongo.Client, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
+func NewMongoClient(ctx context.Context, uri string) (client *mongo.Client, err error) {
 	client, err = mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	if err != nil {
 		return nil, logger.WrapError(err, "failed to connect MongoDB")
