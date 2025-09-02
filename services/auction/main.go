@@ -23,7 +23,7 @@ func main() {
 		auctionLogger.Error("failed to create API instance", zap.Error(err))
 		return
 	}
-	defer api.MongoDB.Client().Disconnect(ctx)
+	defer api.MongoDBClient.Client().Disconnect(ctx)
 	defer api.PostgresClient.Close()
 	defer api.RedisClient.Close()
 	api.RegisterRoutes(router)

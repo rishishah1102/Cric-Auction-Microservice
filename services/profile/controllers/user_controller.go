@@ -100,7 +100,9 @@ func (a *API) UserController(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":     "User profile fetched successfully",
-		"userProfile": userProfiles[0],
+		"message": "User profile fetched successfully",
+		"data": map[string]interface{}{
+			"userProfile": userProfiles[0],
+		},
 	})
 }

@@ -7,15 +7,18 @@ import (
 )
 
 type Auction struct {
-	Id          primitive.ObjectID `bson:"_id" json:"_id"`
-	AuctionImg  string             `bson:"auctionImg" json:"auctionImg"`
-	AuctionName string             `bson:"auctionName" json:"auctionName"`
-	CreatedBy   string             `bson:"createdBy" json:"createdBy"`
-	JoinedBy    []struct {
-		Email string `bson:"email" json:"email"`
-		Name  string `bson:"name" json:"name"`
-	} `bson:"joinedBy" json:"joinedBy"`
-	PointsTableChecked bool      `bson:"pointsTableChecked" json:"pointsTableChecked"`
-	CreatedAt          time.Time `bson:"createdAt" json:"createdAt"`
-	UpdatedAt          time.Time `bson:"updatedAt" json:"updatedAt"`
+	ID           primitive.ObjectID  `bson:"_id" json:"id"`
+	AuctionName  string              `bson:"auction_name" json:"auction_name"`
+	AuctionImage string              `bson:"auction_image" json:"auction_image"`
+	CreatedBy    string              `bson:"created_by" json:"created_by"`
+	AuctionDate  time.Time           `bson:"auction_date" json:"auction_date"`
+	IsIPLAuction bool                `bson:"is_ipl_auction" json:"is_ipl_auction"`
+	JoinedBy     []JoinedAuctionUser `bson:"joined_by" json:"joined_by"`
+	CreatedAt    time.Time           `bson:"created_at" json:"created_at"`
+	UpdatedAt    time.Time           `bson:"updated_at" json:"updated_at"`
+}
+
+type JoinedAuctionUser struct {
+	Email       string `bson:"email" json:"email"`
+	IsTeamOwner bool   `bson:"is_team_owner" json:"is_team_owner"`
 }

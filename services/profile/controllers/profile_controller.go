@@ -94,6 +94,8 @@ func (a *API) ProfileController(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Profile updated successfully",
-		"profile": request,
+		"data": map[string]interface{}{
+			"profile": request,
+		},
 	})
 }

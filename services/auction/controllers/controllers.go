@@ -16,7 +16,7 @@ import (
 // API is the struct for all the handlers
 type API struct {
 	logger         *zap.Logger
-	MongoDB        *mongo.Database
+	MongoDBClient  *mongo.Database
 	PostgresClient *pgxpool.Pool
 	RedisClient    *redis.Client
 }
@@ -43,7 +43,7 @@ func NewAPI(ctx context.Context) (*API, error) {
 
 	return &API{
 		logger:         auctionLogger,
-		MongoDB:        db,
+		MongoDBClient:  db,
 		PostgresClient: postgresClient,
 		RedisClient:    redisClient,
 	}, nil
@@ -57,4 +57,10 @@ func (a *API) RegisterRoutes(router *gin.Engine) {
 			"message": "Welcome to the auction micro service",
 		})
 	})
+
+	auctionGroup := router.Group("/api/v1/auction")
+
+	auctionGroup.GET("/all", a.GetAuctionsController)
+
+	auctionGroup.POST("/create", a.CreateAuctionController)
 }
