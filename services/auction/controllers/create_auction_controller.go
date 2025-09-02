@@ -54,10 +54,8 @@ func (a *API) CreateAuctionController(c *gin.Context) {
 
 	request.ID = res.InsertedID.(primitive.ObjectID)
 
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(http.StatusCreated, gin.H{
 		"message": "Auction created successfully",
-		"data": map[string]interface{}{
-			"auction": request,
-		},
+		"auction": request,
 	})
 }

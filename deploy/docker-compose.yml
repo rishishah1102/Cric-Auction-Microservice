@@ -116,7 +116,7 @@ services:
     ports:
       - "7003:7003"
     environment:
-      MONGO_URI: mongodb://${DB_USER}:${DB_PASSWORD}@mongo:27017/${DB_NAME}
+      MONGO_URI: mongodb://${DB_USER}:${DB_PASSWORD}@mongo:27017/
       DB_NAME: ${DB_NAME}
       POSTGRES_URI: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?sslmode=disable
       REDIS_URI: redis:6379

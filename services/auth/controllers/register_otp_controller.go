@@ -75,8 +75,6 @@ func (a *API) RegisterOtpController(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "User registered successfully",
-		"data": map[string]string{
-			"token": token,
-		},
+		"token":   token,
 	})
 }

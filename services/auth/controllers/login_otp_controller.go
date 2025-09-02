@@ -66,8 +66,6 @@ func (a *API) LoginOtpController(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "User login successful",
-		"data": map[string]string{
-			"token": token,
-		},
+		"token":   token,
 	})
 }

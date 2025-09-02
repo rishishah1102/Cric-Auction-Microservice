@@ -58,7 +58,7 @@ func (a *API) UserController(c *gin.Context) {
 		return
 	}
 
-	userProfileKey := fmt.Sprintf("auction_profile_%s", email)
+	userProfileKey := fmt.Sprintf(cacheKey, email)
 
 	val, err := a.RedisClient.Get(ctx, userProfileKey).Result()
 	if err == nil {
@@ -100,9 +100,7 @@ func (a *API) UserController(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "User profile fetched successfully",
-		"data": map[string]interface{}{
-			"userProfile": userProfiles[0],
-		},
+		"message":     "User profile fetched successfully",
+		"userProfile": userProfiles[0],
 	})
 }

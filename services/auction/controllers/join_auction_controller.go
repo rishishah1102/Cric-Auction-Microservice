@@ -76,8 +76,6 @@ func (a *API) JoinAuctionController(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Successfully joined the auction",
-		"data": map[string]interface{}{
-			"auction": response,
-		},
+		"auction": response,
 	})
 }
