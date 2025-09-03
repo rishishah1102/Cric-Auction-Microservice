@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -29,21 +28,23 @@ func (a *API) GetAuctionsController(c *gin.Context) {
 	}
 
 	auctionType := c.DefaultQuery("type", "all") // all | create | join
-	auctionsKey := fmt.Sprintf(cacheKey, auctionType, email)
+	auctionsKey := fmt.Sprintf(auctionCacheKey, auctionType, email)
 
+	// Try to get from cache first
 	val, err := a.RedisClient.Get(ctx, auctionsKey).Result()
 	if err == nil {
-		var auctions []models.Auction
-		if err = json.Unmarshal([]byte(val), &auctions); err == nil {
+		var cachedAuctions []models.Auction
+		if err = json.Unmarshal([]byte(val), &cachedAuctions); err == nil {
 			c.JSON(http.StatusOK, gin.H{
 				"message":  "Auctions fetched successfully from cache",
-				"auctions": auctions,
+				"auctions": cachedAuctions,
 			})
 			return
 		} else {
-			a.logger.Warn("failed to unmarshal auctions", zap.Error(err))
+			a.logger.Warn("failed to unmarshal auctions from cache", zap.Error(err))
+			// Delete invalid cache
 			if _, err = a.RedisClient.Del(ctx, auctionsKey).Result(); err != nil {
-				a.logger.Warn("failed to delete the key from redis", zap.Error(err))
+				a.logger.Warn("failed to delete invalid cache key", zap.Error(err))
 			}
 		}
 	}
@@ -81,14 +82,15 @@ func (a *API) GetAuctionsController(c *gin.Context) {
 		return
 	}
 
+	// Cache the results
 	if len(auctions) > 0 {
 		jsonData, err := json.Marshal(auctions)
 		if err == nil {
-			if err = a.RedisClient.Set(ctx, auctionsKey, jsonData, 10*time.Minute).Err(); err != nil {
+			if err = a.RedisClient.Set(ctx, auctionsKey, jsonData, TTLTime).Err(); err != nil {
 				a.logger.Warn("failed to set auctions in redis", zap.Error(err))
 			}
 		} else {
-			a.logger.Warn("failed to marshal auctions", zap.Error(err))
+			a.logger.Warn("failed to marshal auctions for caching", zap.Error(err))
 		}
 	}
 

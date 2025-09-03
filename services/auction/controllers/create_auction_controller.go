@@ -4,6 +4,7 @@ import (
 	"auction-web/internal/constants"
 	"auction-web/pkg/models"
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -50,7 +51,15 @@ func (a *API) CreateAuctionController(c *gin.Context) {
 		return
 	}
 
-	// TODO: Delete the cache from redis
+	// Clear cache for all auction types for this user
+	cacheKeys := []string{
+		fmt.Sprintf(auctionCacheKey, "create", email),
+		fmt.Sprintf(auctionCacheKey, "all", email),
+		fmt.Sprintf(auctionCacheKey, "join", email),
+	}
+	if _, err = a.RedisClient.Del(ctx, cacheKeys...).Result(); err != nil {
+		a.logger.Error("failed to delete create auctions from cache", zap.Error(err))
+	}
 
 	request.ID = res.InsertedID.(primitive.ObjectID)
 

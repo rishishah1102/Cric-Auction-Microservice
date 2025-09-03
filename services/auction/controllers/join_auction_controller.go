@@ -5,6 +5,7 @@ import (
 	"auction-web/pkg/models"
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -47,6 +48,24 @@ func (a *API) JoinAuctionController(c *gin.Context) {
 		return
 	}
 
+	// First check if user is already joined
+	alreadyJoinedFilter := bson.M{
+		"_id":             objectID,
+		"joined_by.email": email,
+	}
+
+	count, err := a.MongoDBClient.Collection("auctions").CountDocuments(ctx, alreadyJoinedFilter)
+	if err != nil {
+		a.logger.Error("failed to check if user already joined", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	if count > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "You have already joined this auction"})
+		return
+	}
+
 	filter := bson.M{
 		"_id": objectID,
 	}
@@ -72,7 +91,15 @@ func (a *API) JoinAuctionController(c *gin.Context) {
 		return
 	}
 
-	// TODO: Delete the cache from redis
+	// Clear cache for all auction types for this user
+	cacheKeys := []string{
+		fmt.Sprintf(auctionCacheKey, "create", email),
+		fmt.Sprintf(auctionCacheKey, "join", email),
+		fmt.Sprintf(auctionCacheKey, "all", email),
+	}
+	if _, err = a.RedisClient.Del(ctx, cacheKeys...).Result(); err != nil {
+		a.logger.Error("failed to delete join auctions from cache", zap.Error(err))
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Successfully joined the auction",

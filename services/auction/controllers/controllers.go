@@ -65,4 +65,6 @@ func (a *API) RegisterRoutes(router *gin.Engine) {
 	auctionGroup.POST("/create", a.CreateAuctionController)
 
 	auctionGroup.POST("/join", a.JoinAuctionController)
+
+	auctionGroup.PATCH("/", a.UpdateAuctionController)
 }
