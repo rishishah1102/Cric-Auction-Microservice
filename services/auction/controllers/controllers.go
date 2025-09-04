@@ -67,4 +67,12 @@ func (a *API) RegisterRoutes(router *gin.Engine) {
 	auctionGroup.POST("/join", a.JoinAuctionController)
 
 	auctionGroup.PATCH("/", a.UpdateAuctionController)
+
+	auctionGroup.PATCH("/team", a.UpdateTeamController)
+
+	auctionGroup.POST("/team/all", a.GetAllTeamsController)
+
+	auctionGroup.POST("/team", a.CreateTeamController)
+
+	auctionGroup.DELETE("/team", a.DeleteTeamController)
 }

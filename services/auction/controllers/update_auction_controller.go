@@ -25,7 +25,7 @@ func (a *API) UpdateAuctionController(c *gin.Context) {
 	defer cancel()
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		a.logger.Error("failed to bind create auction request", zap.Error(err))
+		a.logger.Error("failed to bind update auction request", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
@@ -76,8 +76,8 @@ func (a *API) UpdateAuctionController(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Auction created successfully",
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Auction updated successfully",
 		"auction": response,
 	})
 }

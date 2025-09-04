@@ -16,7 +16,7 @@ import (
 )
 
 type joinAuctionRequest struct {
-	AuctionID string `json:"auction_id"`
+	AuctionID primitive.ObjectID `json:"auction_id"`
 }
 
 func (a *API) JoinAuctionController(c *gin.Context) {
@@ -41,16 +41,9 @@ func (a *API) JoinAuctionController(c *gin.Context) {
 		return
 	}
 
-	objectID, err := primitive.ObjectIDFromHex(request.AuctionID)
-	if err != nil {
-		a.logger.Error("failed to parse auction id", zap.Error(err))
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid auction id"})
-		return
-	}
-
 	// First check if user is already joined
 	alreadyJoinedFilter := bson.M{
-		"_id":             objectID,
+		"_id":             request.AuctionID,
 		"joined_by.email": email,
 	}
 
@@ -67,7 +60,7 @@ func (a *API) JoinAuctionController(c *gin.Context) {
 	}
 
 	filter := bson.M{
-		"_id": objectID,
+		"_id": request.AuctionID,
 	}
 	updateQuery := bson.M{
 		"$addToSet": bson.M{
