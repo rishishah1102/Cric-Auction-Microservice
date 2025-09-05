@@ -39,7 +39,7 @@ func (a *API) CreateAuctionController(c *gin.Context) {
 		"auction_date":   request.AuctionDate,
 		"created_by":     email,
 		"is_ipl_auction": request.IsIPLAuction,
-		"joined_by":      []models.JoinedAuctionUser{},
+		"joined_by":      []string{},
 		"created_at":     time.Now(),
 		"updated_at":     time.Now(),
 	}

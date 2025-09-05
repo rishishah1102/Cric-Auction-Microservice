@@ -65,8 +65,7 @@ func (a *API) JoinAuctionController(c *gin.Context) {
 	updateQuery := bson.M{
 		"$addToSet": bson.M{
 			"joined_by": bson.M{
-				"email":         email,
-				"is_team_owner": false,
+				"email": email,
 			},
 		},
 	}
