@@ -43,8 +43,8 @@ func (a *API) JoinAuctionController(c *gin.Context) {
 
 	// First check if user is already joined
 	alreadyJoinedFilter := bson.M{
-		"_id":             request.AuctionID,
-		"joined_by.email": email,
+		"_id":       request.AuctionID,
+		"joined_by": email,
 	}
 
 	count, err := a.MongoDBClient.Collection("auctions").CountDocuments(ctx, alreadyJoinedFilter)
@@ -64,9 +64,7 @@ func (a *API) JoinAuctionController(c *gin.Context) {
 	}
 	updateQuery := bson.M{
 		"$addToSet": bson.M{
-			"joined_by": bson.M{
-				"email": email,
-			},
+			"joined_by": email, // Changed from object to simple string
 		},
 	}
 

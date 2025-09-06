@@ -54,12 +54,12 @@ func (a *API) GetAuctionsController(c *gin.Context) {
 	case "create":
 		filter = bson.M{"created_by": email}
 	case "join":
-		filter = bson.M{"joined_by.email": email}
+		filter = bson.M{"joined_by": email}
 	case "all":
 		filter = bson.M{
 			"$or": []bson.M{
 				{"created_by": email},
-				{"joined_by.email": email},
+				{"joined_by": email},
 			},
 		}
 	default:
