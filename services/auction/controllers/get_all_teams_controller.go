@@ -14,13 +14,13 @@ import (
 	"go.uber.org/zap"
 )
 
-type apiRequest struct {
+type teamAPIRequest struct {
 	AuctionID primitive.ObjectID `json:"auction_id"`
 }
 
 func (a *API) GetAllTeamsController(c *gin.Context) {
 	var (
-		request apiRequest
+		request teamAPIRequest
 		teams   []models.Team
 	)
 

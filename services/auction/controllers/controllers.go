@@ -60,7 +60,9 @@ func (a *API) RegisterRoutes(router *gin.Engine) {
 
 	auctionGroup := router.Group("/api/v1/auction")
 
-	auctionGroup.GET("/all", a.GetAuctionsController)
+	auctionGroup.GET("/all", a.GetAllAuctionsController)
+
+	auctionGroup.POST("/", a.GetAuctionController)
 
 	auctionGroup.POST("/create", a.CreateAuctionController)
 

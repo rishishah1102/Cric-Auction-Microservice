@@ -10,12 +10,22 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
-func (a *API) GetAuctionsController(c *gin.Context) {
-	var auctions []models.Auction
+type auctionAPIResp struct {
+	AuctionID    primitive.ObjectID `json:"id"`
+	AuctionName  string             `json:"auction_name"`
+	AuctionImage string             `json:"auction_image"`
+}
+
+func (a *API) GetAllAuctionsController(c *gin.Context) {
+	var (
+		auctions []models.Auction
+		resp     []auctionAPIResp
+	)
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.DBTimeout)
 	defer cancel()
@@ -82,9 +92,17 @@ func (a *API) GetAuctionsController(c *gin.Context) {
 		return
 	}
 
+	for _, auction := range auctions {
+		var auctionResp auctionAPIResp
+		auctionResp.AuctionID = auction.ID
+		auctionResp.AuctionName = auction.AuctionName
+		auctionResp.AuctionImage = auction.AuctionImage
+		resp = append(resp, auctionResp)
+	}
+
 	// Cache the results
-	if len(auctions) > 0 {
-		jsonData, err := json.Marshal(auctions)
+	if len(resp) > 0 {
+		jsonData, err := json.Marshal(resp)
 		if err == nil {
 			if err = a.RedisClient.Set(ctx, auctionsKey, jsonData, TTLTime).Err(); err != nil {
 				a.logger.Warn("failed to set auctions in redis", zap.Error(err))
