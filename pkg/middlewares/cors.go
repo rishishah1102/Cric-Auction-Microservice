@@ -24,7 +24,7 @@ func CORSMiddleware(c *gin.Context) {
 	}
 
 	c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-	c.Header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE")
+	c.Header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, PATCH")
 	c.Header("Access-Control-Allow-Credentials", "true")
 
 	if c.Request.Method == "OPTIONS" {

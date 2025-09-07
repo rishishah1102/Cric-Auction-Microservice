@@ -58,7 +58,7 @@ func (a *API) UserController(c *gin.Context) {
 		return
 	}
 
-	userProfileKey := fmt.Sprintf("auction_profile_%s", email)
+	userProfileKey := fmt.Sprintf(cacheKey, email)
 
 	val, err := a.RedisClient.Get(ctx, userProfileKey).Result()
 	if err == nil {
