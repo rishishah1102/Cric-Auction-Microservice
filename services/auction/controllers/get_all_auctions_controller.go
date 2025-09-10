@@ -19,6 +19,7 @@ type auctionAPIResp struct {
 	AuctionID    primitive.ObjectID `json:"id"`
 	AuctionName  string             `json:"auction_name"`
 	AuctionImage string             `json:"auction_image"`
+	IsIPLAuction bool               `json:"is_ipl_auction"`
 }
 
 func (a *API) GetAllAuctionsController(c *gin.Context) {
@@ -97,6 +98,7 @@ func (a *API) GetAllAuctionsController(c *gin.Context) {
 		auctionResp.AuctionID = auction.ID
 		auctionResp.AuctionName = auction.AuctionName
 		auctionResp.AuctionImage = auction.AuctionImage
+		auctionResp.IsIPLAuction = auction.IsIPLAuction
 		resp = append(resp, auctionResp)
 	}
 
@@ -114,6 +116,6 @@ func (a *API) GetAllAuctionsController(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "Auctions fetched successfully",
-		"auctions": auctions,
+		"auctions": resp,
 	})
 }
