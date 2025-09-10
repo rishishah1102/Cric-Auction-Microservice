@@ -129,6 +129,26 @@ services:
     networks: 
       - auction-network
 
+  player-service:
+    build:
+      context: ../ # This path is relative to docker-compose file so, need to ../ to go to root directory
+      dockerfile: ./services/player/Dockerfile # as we have give context of our root directory
+    image: player-service
+    container_name: player-service
+    ports:
+      - "7004:7004"
+    environment:
+      MONGO_URI: mongodb://${DB_USER}:${DB_PASSWORD}@mongo:27017/
+      DB_NAME: ${DB_NAME}
+      REDIS_URI: redis:6379
+      REDIS_PASSWORD: ${DB_PASSWORD}
+      TOKEN_KEY: ${TOKEN_KEY}
+    depends_on:
+      - mongo
+      - redis
+    networks: 
+      - auction-network
+
 volumes:
   mongo:
     driver: local
