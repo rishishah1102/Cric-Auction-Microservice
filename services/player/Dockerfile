@@ -4,12 +4,12 @@ WORKDIR /app
 COPY ./go.mod go.sum ./
 COPY ./internal/ internal/
 COPY ./pkg/ pkg/
-COPY ./services/auction/ services/auction/
-RUN go build -o auction-service services/auction/main.go
+COPY ./services/player/ services/player/
+RUN go build -o player-service services/player/main.go
 
 # Stage 2: Run
 FROM alpine:3.22
 WORKDIR /app
-COPY --from=builder /app/auction-service .
-EXPOSE 7003
-CMD ["./auction-service"]
+COPY --from=builder /app/player-service .
+EXPOSE 7004
+CMD ["./player-service"]

@@ -51,11 +51,11 @@ func (a *API) RegisterRoutes(router *gin.Engine) {
 
 	playersGroup := router.Group("/api/v1/players")
 
-	playersGroup.POST("/get")
+	playersGroup.POST("/get", a.GetAllPlayersController)
 
-	playersGroup.POST("/save")
+	playersGroup.POST("/save", a.SavePlayerController)
 
-	playersGroup.PATCH("/")
+	playersGroup.PATCH("/update", a.UpdatePlayerController)
 
-	playersGroup.DELETE("/")
+	playersGroup.DELETE("/delete", a.DeletePlayerController)
 }

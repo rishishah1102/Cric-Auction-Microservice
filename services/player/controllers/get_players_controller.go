@@ -4,6 +4,8 @@ import (
 	"auction-web/internal/constants"
 	"auction-web/pkg/models"
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,15 +15,13 @@ import (
 	"go.uber.org/zap"
 )
 
-type playersAPIRequest struct {
-	AuctionID primitive.ObjectID `json:"auction_id"`
-}
-
+// GetAllPlayersController with Redis caching
 func (a *API) GetAllPlayersController(c *gin.Context) {
-	var (
-		request playersAPIRequest
-		players []models.Player
-	)
+	var request struct {
+		AuctionID primitive.ObjectID `json:"auction_id" binding:"required"`
+	}
+	var players []models.Player
+
 	ctx, cancel := context.WithTimeout(c.Request.Context(), constants.DBTimeout)
 	defer cancel()
 
@@ -31,18 +31,28 @@ func (a *API) GetAllPlayersController(c *gin.Context) {
 		return
 	}
 
-	playerType := c.DefaultQuery("role", "all")     // all | Batter | Wicker-Keeper | All-Rounder | Bowler
-	playerHammer := c.DefaultQuery("hammer", "all") // all | sold | unsold | upcoming
+	// Generate cache key
+	cacheKey := fmt.Sprintf(PlayerCacheKey, request.AuctionID.Hex())
+
+	val, err := a.RedisClient.Get(ctx, cacheKey).Result()
+	if err == nil {
+		var cachedPlayers []models.Player
+		if err = json.Unmarshal([]byte(val), &cachedPlayers); err == nil {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "Players fetched successfully from cache",
+				"players": cachedPlayers,
+			})
+			return
+		} else {
+			a.logger.Warn("failed to unmarshal players from cache", zap.Error(err))
+			// Delete invalid cache
+			if _, err = a.RedisClient.Del(ctx, cacheKey).Result(); err != nil {
+				a.logger.Warn("failed to delete invalid cache key", zap.Error(err))
+			}
+		}
+	}
 
 	filter := bson.M{"auction_id": request.AuctionID}
-
-	if playerType != "all" {
-		filter["role"] = playerType
-	}
-
-	if playerHammer != "all" {
-		filter["hammer"] = playerHammer
-	}
 
 	findOptions := options.Find().SetSort(bson.D{{Key: "player_number", Value: 1}}) // Sort Asc
 
@@ -60,8 +70,20 @@ func (a *API) GetAllPlayersController(c *gin.Context) {
 		return
 	}
 
+	// Cache the results
+	if len(players) > 0 {
+		jsonData, err := json.Marshal(players)
+		if err == nil {
+			if err = a.RedisClient.Set(ctx, cacheKey, jsonData, PlayerTTL).Err(); err != nil {
+				a.logger.Warn("failed to set players in redis", zap.Error(err))
+			}
+		} else {
+			a.logger.Warn("failed to marshal players for caching", zap.Error(err))
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"message":  "Players fetched successfully",
-		"auctions": players,
+		"message": "Players fetched successfully",
+		"players": players,
 	})
 }

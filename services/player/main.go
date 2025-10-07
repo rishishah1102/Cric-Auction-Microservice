@@ -5,7 +5,7 @@ import (
 	"auction-web/internal/logger"
 	"auction-web/internal/router"
 	"auction-web/pkg/utils"
-	"auction-web/services/auction/controllers"
+	"auction-web/services/player/controllers"
 	"context"
 
 	"go.uber.org/zap"

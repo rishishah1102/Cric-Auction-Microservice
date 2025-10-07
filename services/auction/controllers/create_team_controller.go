@@ -38,6 +38,7 @@ func (a *API) CreateTeamController(c *gin.Context) {
 		"team_image":  request.TeamImage,
 		"auction_id":  request.AuctionId,
 		"team_owners": request.TeamOwners,
+		"squad":       make([]primitive.ObjectID, 0),
 		"created_at":  time.Now(),
 		"updated_at":  time.Now(),
 	}
