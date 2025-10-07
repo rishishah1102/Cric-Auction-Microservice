@@ -58,4 +58,6 @@ func (a *API) RegisterRoutes(router *gin.Engine) {
 	playersGroup.PATCH("/update", a.UpdatePlayerController)
 
 	playersGroup.DELETE("/delete", a.DeletePlayerController)
+
+	playersGroup.POST("/squad", a.SquadsController)
 }
