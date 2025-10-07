@@ -28,7 +28,7 @@ func (a *API) GetAllTeamsController(c *gin.Context) {
 	defer cancel()
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		a.logger.Error("failed to bind create team request", zap.Error(err))
+		a.logger.Error("failed to bind get all teams request", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
