@@ -62,13 +62,13 @@ func (a *API) RegisterRoutes(router *gin.Engine) {
 
 	auctionGroup.GET("/all", a.GetAllAuctionsController)
 
-	auctionGroup.POST("/", a.GetAuctionController)
+	auctionGroup.POST("/get", a.GetAuctionController)
 
 	auctionGroup.POST("/create", a.CreateAuctionController)
 
 	auctionGroup.POST("/join", a.JoinAuctionController)
 
-	auctionGroup.PATCH("/", a.UpdateAuctionController)
+	auctionGroup.PATCH("/update", a.UpdateAuctionController)
 
 	auctionGroup.PATCH("/team", a.UpdateTeamController)
 
